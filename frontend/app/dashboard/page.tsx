@@ -1,4 +1,4 @@
-import { WebSourceManagement } from "../../components/dashboard/web-source-management"
+import { WebSourceManagement } from "../../components/web-source-management"
 
 export default function DashboardPage() {
   return (

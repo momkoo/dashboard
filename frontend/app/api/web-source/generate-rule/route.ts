@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8082';
 export async function POST(request: Request) {
   try {
     const { elementId, url } = await request.json()

@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
 import { MoreVertical, Edit, Trash2, Play, CheckCircle, XCircle, RefreshCcw, PauseCircle, Globe } from "lucide-react"
 // Import WebSource type from management to ensure lastCrawled and dataFields are present
-import type { WebSource } from "./web-source-management"
+import type { WebSource } from "../web-source-management"
 
 interface WebSourceListProps {
   sources: WebSource[]

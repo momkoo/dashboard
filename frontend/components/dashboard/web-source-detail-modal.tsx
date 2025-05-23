@@ -4,7 +4,7 @@
 import React from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import type { WebSource } from "./web-source-management"
+import type { WebSource } from "../web-source-management"
 
 interface WebSourceDetailModalProps {
   open: boolean

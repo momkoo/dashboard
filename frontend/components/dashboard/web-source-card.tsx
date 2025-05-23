@@ -33,7 +33,7 @@ import {
   ExternalLink,
   AlertTriangle,
 } from "lucide-react"
-import type { WebSource } from "./web-source-management.tsx"
+import type { WebSource } from "../web-source-management.jsx"
 
 interface WebSourceCardProps {
   source: WebSource

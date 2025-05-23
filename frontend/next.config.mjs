@@ -1,11 +1,29 @@
 // frontend/next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // 이 라인을 추가합니다.
+  // output: 'export' 제거 - 개발 모드에서는 필요없음
   images: {
-    unoptimized: true, // next export 시 이미지 최적화 비활성화
+    unoptimized: true,
   },
-  // 기타 Next.js 설정...
+  // API routes를 위해 standalone 모드 사용
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'localhost:8082']
+    }
+  },
+  // 환경변수 설정
+  env: {
+    BACKEND_URL: process.env.BACKEND_URL || 'http://localhost:8082'
+  },
+  // 개발 모드에서 CORS 문제 해결
+  async rewrites() {
+    return [
+      {
+        source: '/api/backend/:path*',
+        destination: 'http://localhost:8082/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

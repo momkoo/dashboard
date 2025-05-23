@@ -1,38 +1,78 @@
-// src/dashboard/frontend/types/web-source.ts
+// frontend/types/web-source.ts
 
-// Define the DataField interface (assuming it's part of the WebSource structure)
-// This should match the backend's DataField model
+// 공통 데이터 필드 타입
 export interface DataField {
   id: string;
   name: string;
-  type: string; // e.g., 'text', 'number', 'url', 'date'
-  method: string; // e.g., 'css_selector', 'xpath', 'llm'
-  rule: string; // The selector, XPath, or LLM instruction
+  type: 'text' | 'number' | 'url' | 'date' | 'image_url' | 'boolean';
+  method: 'css_selector' | 'xpath' | 'llm' | 'attribute';
+  rule: string;
 }
 
-// Define the WebSource interface
-// This should match the backend's WebSourceConfig model
+// 웹소스 설정 타입
 export interface WebSource {
   name: string;
   url: string;
-  data_fields: DataField[]; // Use the DataField interface
-  schedule?: string; // e.g., 'manual', 'daily', 'hourly'
+  data_fields: DataField[];
+  schedule?: string;
   enabled?: boolean;
-  // Add other configuration fields as needed (e.g., login credentials, headers)
 }
 
-// You might also want to export ElementInfo if it's considered a shared type
-// import { ElementInfo } from './dashboard'; // If defined in dashboard.ts
-// export { ElementInfo }; // Re-export if needed
+// 저장된 웹소스 타입 (백엔드에서 반환되는 형태)
+export interface SavedWebSource {
+  id: string;
+  name: string;
+  url: string;
+  status: 'active' | 'inactive' | 'error' | 'crawling';
+  lastCrawled: string | null;
+  dataFields: DataField[];
+  createdAt?: string;
+}
 
-// Or define ElementInfo here if it logically belongs with web sources
-/*
+// 요소 정보 타입
 export interface ElementInfo {
   node_id: number;
   tag: string;
   text: string | null;
   attributes: { [key: string]: string };
-  bounding_box: { x: number; y: number; width: number; height: number; right?: number; bottom?: number } | null;
+  bounding_box: { 
+    x: number; 
+    y: number; 
+    width: number; 
+    height: number; 
+    right?: number; 
+    bottom?: number 
+  } | null;
   is_clickable: boolean;
 }
-*/
+
+// LLM 제안 타입
+export interface LlmSuggestion {
+  id: string;
+  name: string;
+  description: string;
+  dataType: string;
+  extractionMethod: string;
+  extractionRule: string;
+}
+
+// frontend/types/dashboard.ts
+
+export type WebSourceStatus = "active" | "inactive" | "error" | "processing" | "paused"
+
+// Dashboard용 웹소스 타입 (SavedWebSource와 통합)
+export interface WebSource {
+  id: string;
+  name: string;
+  url: string;
+  status: WebSourceStatus;
+  lastCollected: string; // lastCrawled와 동일
+  fields?: string[];
+  dataFields?: import('./web-source').DataField[]; // 상세 정보용
+}
+
+// 수집된 데이터 타입
+export interface CollectedData {
+  id: string;
+  [key: string]: any;
+}

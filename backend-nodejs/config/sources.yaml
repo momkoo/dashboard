@@ -1,0 +1,88 @@
+-
+    name: '웹소스 - news.google.com'
+    url: 'https://news.google.com/home?hl=ko&gl=KR&ceid=KR:ko'
+    data_fields:
+        -
+            id: field_1747985857141
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: 'a.gPFEn[href]'
+        -
+            id: field_1747985858783
+            name: 필드_2
+            type: text
+            method: css_selector
+            rule: 'a.WwrzSb[href]'
+        -
+            id: field_1747985861816
+            name: 필드_3
+            type: text
+            method: css_selector
+            rule: 'a.JtKRv.iTin5e[href]'
+        -
+            id: field_1747985866918
+            name: 필드_4
+            type: text
+            method: css_selector
+            rule: 'a.JtKRv.vDXQhc[href]'
+        -
+            id: field_1747985884674
+            name: 필드_5
+            type: text
+            method: css_selector
+            rule: 'a.JtKRv[href]'
+-
+    name: '웹소스 - m.blog.naver.com'
+    url: 'https://m.blog.naver.com/PostList.naver?blogId=cocoleenice&tab=1'
+    data_fields:
+        -
+            id: field_1747993187929
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: img.lazyload.reset__YyJ56
+-
+    name: '웹소스 - trends.google.co.kr'
+    url: 'https://trends.google.co.kr/trending?geo=KR'
+    data_fields:
+        -
+            id: field_1747996236909
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: div.mZ3RIc
+-
+    name: '웹소스 - www.perplexity.ai'
+    url: 'https://www.perplexity.ai/finance?login-source=oneTap&login-new=false'
+    data_fields:
+        -
+            id: field_1747996284694
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: rect.visx-bar
+        -
+            id: field_1747996285710
+            name: 필드_2
+            type: text
+            method: css_selector
+            rule: div.gap-sm.flex.min-w-0.items-center.justify-between
+        -
+            id: field_1747996288124
+            name: 필드_3
+            type: text
+            method: css_selector
+            rule: 'div.line-clamp-2.font-sans.text-sm.font-medium.leading-\[1\.125rem\].text-textMain.dark\:text-textMainDark.selection\:bg-super\/50.selection\:text-textMain.dark\:selection\:bg-superDuper\/10.dark\:selection\:text-superDark'
+        -
+            id: field_1747996288732
+            name: 필드_4
+            type: text
+            method: css_selector
+            rule: 'div.gap-xs.flex.items-center.border-borderMain\/50.ring-borderMain\/50.divide-borderMain\/50.dark\:divide-borderMainDark\/50.dark\:ring-borderMainDark\/50.dark\:border-borderMainDark\/50.bg-transparent'
+        -
+            id: field_1747996289150
+            name: 필드_5
+            type: text
+            method: css_selector
+            rule: 'div.line-clamp-6.font-sans.text-sm.text-textMain.dark\:text-textMainDark.selection\:bg-super\/50.selection\:text-textMain.dark\:selection\:bg-superDuper\/10.dark\:selection\:text-superDark'

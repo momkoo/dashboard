@@ -2,12 +2,20 @@
 const express = require('express');
 const { chromium } = require('playwright');
 const bodyParser = require('body-parser');
+
+
 const YAML = require('yamljs'); // For YAML file operations
 const path = require('path');
 const fs = require('fs').promises; // Use promise-based fs for async operations
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
+// Initialize Supabase client
+const SUPABASE_URL = process.env.SUPABASE_URL || 'http://localhost:54321';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
 
 const app = express();
-const PORT = process.env.PORT || 8000; // Use port 8000, matching the frontend's expectation
+const PORT = process.env.PORT || 8082; // Use port 8000, matching the frontend's expectation
 
 // Middleware
 app.use(bodyParser.json({ limit: '50mb' })); // To parse JSON request bodies, increase limit for screenshots
@@ -80,6 +88,7 @@ function generateSelector(elementInfo) {
 // POST /sources/add/initial
 app.post('/sources/add/initial', async (req, res) => {
     let browser;
+    let usedEngine = 'playwright';
     try {
         const { url } = req.body;
         console.log(`[Backend Node.js] Received URL for analysis: ${url}`);
@@ -88,45 +97,47 @@ app.post('/sources/add/initial', async (req, res) => {
             return res.status(400).json({ error: 'URL is required.' });
         }
 
-        console.log('[Backend Node.js] Launching browser...');
-        // Launch browser in non-headless mode for debugging, change to true for production
+        // Launch Playwright browser and create page (fix: ensure 'page' is defined)
         browser = await chromium.launch({ headless: false }); // Debugging: headless=false
         const page = await browser.newPage();
-        console.log('[Backend Node.js] Browser launched, new page created.');
+        const targetViewportWidth = 1920;
+        const targetViewportHeight = 1080;
+        await page.setViewportSize({ width: targetViewportWidth, height: targetViewportHeight });
+        await page.goto(url, { waitUntil: 'networkidle' });
 
-        console.log(`[Backend Node.js] Navigating to: ${url}`);
-        await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 }); // Increased timeout
-        console.log(`[Backend Node.js] Navigation to ${url} complete.`);
-
-        // Wait for body or a specific selector to ensure content is loaded
-        const targetSelector = 'body'; // Default to body, but more specific is better
+        const targetSelector = 'body';
         try {
             console.log(`[Backend Node.js] Waiting for selector: ${targetSelector}`);
-            await page.waitForSelector(targetSelector, { timeout: 20000 }); // Wait for 20 seconds
+            await page.waitForSelector(targetSelector, { timeout: 20000 });
             console.log(`[Backend Node.js] Selector found: ${targetSelector}`);
         } catch (selectorError) {
             console.warn(`[Backend Node.js] Warning: Timeout or error waiting for selector ${targetSelector}: ${selectorError.message}`);
-            // Continue even if selector not found, as page might still have content
         }
 
         console.log('[Backend Node.js] Taking screenshot...');
-        const screenshotBuffer = await page.screenshot();
+        // Take full page screenshot
+        const screenshotBuffer = await page.screenshot({ fullPage: true });
         const screenshotBase64 = screenshotBuffer.toString('base64');
         console.log('[Backend Node.js] Screenshot taken.');
 
         console.log('[Backend Node.js] Processing DOM...');
-        // Inject the build_dom_tree.js script and execute its function
+        // Use evaluate to inject DOM script to avoid TrustedScript assignment errors
         await page.evaluate(buildDomTreeScriptContent);
-        const domInfo = await page.evaluate(() => {
-            // Assuming build_dom_tree.js defines getBrowserUseDomInfo() globally
+        const domResult = await page.evaluate(() => {
             if (typeof window.getBrowserUseDomInfo === 'function') {
                 return window.getBrowserUseDomInfo();
             }
-            return [];
+            return { elements: [], documentWidth: 0, documentHeight: 0 };
         });
-        console.log(`[Backend Node.js] DOM processing complete. Extracted ${domInfo.length} elements.`);
+        console.log(`[Backend Node.js] DOM processing complete. Extracted ${domResult.elements.length} elements.`);
 
-        res.json({ screenshot: screenshotBase64, dom_info: domInfo });
+        res.json({
+            screenshot: screenshotBase64,
+            dom_info: domResult.elements,
+            originalDocumentWidth: domResult.documentWidth,
+            originalDocumentHeight: domResult.documentHeight,
+            originalViewportWidth: targetViewportWidth,
+        });
 
     } catch (error) {
         console.error(`[Backend Node.js] Critical Error during URL analysis: ${error.message}`);
@@ -162,6 +173,31 @@ app.post('/sources/add/save', async (req, res) => {
 
     try {
         console.log(`[Backend Node.js] Received config to save: ${newConfig.name}`);
+
+        // Save to Supabase (PostgreSQL)
+        // Only save fields that exist in the table
+        try {
+            // Prepare insert payload
+            const insertPayload = {
+                name: newConfig.name,
+                url: newConfig.url,
+                data_fields: newConfig.data_fields || [],
+                schedule: newConfig.schedule || 'manual',
+                enabled: typeof newConfig.enabled === 'boolean' ? newConfig.enabled : true,
+                // created_at, id, etc. are handled by DB default
+            };
+            const { error: supabaseError, data: supabaseData } = await supabase
+                .from('web_sources')
+                .insert([insertPayload])
+                .select();
+            if (supabaseError) {
+                console.error('[Supabase] Error inserting web_source:', supabaseError.message);
+            } else {
+                console.log('[Supabase] Web source inserted:', supabaseData);
+            }
+        } catch (supabaseCatchError) {
+            console.error('[Supabase] Exception during insert:', supabaseCatchError);
+        }
 
         // Ensure config directory exists
         await fs.mkdir(path.dirname(configPath), { recursive: true });
@@ -203,4 +239,3 @@ async function startServer() {
 }
 
 startServer();
-

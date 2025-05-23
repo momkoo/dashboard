@@ -1,4 +1,4 @@
-// src/browser_agent/build_dom_tree.js
+// backend-nodejs/build_dom_tree.js
 // Adapted from browser-use-main/browser_use/dom/buildDomTree.js
 // This script is injected into the browser page to extract structured DOM information.
 
@@ -16,18 +16,11 @@ function extractElementInfo(element, nodeId) {
     const tagName = element.tagName.toLowerCase();
     const isClickable = isElementClickable(element);
 
-    // Only extract info for relevant elements (clickable, input, select, textarea, etc.)
-    // Or for elements that might contain important text/data
-    // This logic can be refined based on specific needs.
     const relevantTags = ['a', 'button', 'input', 'select', 'textarea', 'div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'li', 'td', 'th'];
     if (!isClickable && !relevantTags.includes(tagName) && !element.hasAttribute('role')) {
-         // Skip elements that are not directly interactive and not in relevantTags
-         // unless they have a 'role' attribute which might indicate semantic meaning
-         if (element.children.length === 0 && !element.textContent.trim()) {
-              // Skip empty non-relevant elements
-              return null;
-         }
-         // Optionally, add more conditions to filter irrelevant elements
+        if (element.children.length === 0 && !element.textContent.trim()) {
+            return null;
+        }
     }
 
 
@@ -35,81 +28,62 @@ function extractElementInfo(element, nodeId) {
     try {
         const rect = element.getBoundingClientRect();
         boundingBox = {
-            x: rect.x,
-            y: rect.y,
+            // 뷰포트 기준 좌표에 현재 페이지의 스크롤 X/Y 값을 더하여
+            // 문서 전체 기준의 좌표를 만듭니다.
+            x: rect.x + window.scrollX,
+            y: rect.y + window.scrollY,
             width: rect.width,
             height: rect.height,
-            // Add right and bottom for easier calculation if needed
-            right: rect.right,
-            bottom: rect.bottom,
+            right: rect.right + window.scrollX,
+            bottom: rect.bottom + window.scrollY,
         };
 
-        // Filter out elements that are too small or outside the viewport
-        const MIN_SIZE = 5; // Minimum size in pixels
+        const MIN_SIZE = 5;
         if (boundingBox.width < MIN_SIZE || boundingBox.height < MIN_SIZE) {
-             return null;
+            return null;
         }
-
-        // Check if element is in viewport (at least partially)
-        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-
-        if (boundingBox.bottom < 0 || boundingBox.top > viewportHeight ||
-            boundingBox.right < 0 || boundingBox.left > viewportWidth) {
-            // Element is completely outside the viewport
-            // return null; // Uncomment this line if you only want elements in the current viewport
-        }
-
+        // 전체 페이지 스크린샷을 찍으므로, 요소가 뷰포트 밖에 있어도 유효하게 처리해야 합니다.
+        // 여기서는 뷰포트 내 존재 여부 필터링을 제거합니다.
 
     } catch (e) {
-        // Ignore errors getting bounding box
         boundingBox = null;
     }
 
     const attributes = {};
-    // Extract important attributes
     const importantAttributes = ['id', 'class', 'name', 'href', 'value', 'type', 'placeholder', 'role', 'aria-label', 'title', 'alt'];
     for (const attrName of importantAttributes) {
         if (element.hasAttribute(attrName)) {
-            attributes[attrName] = element.getAttribute(attrName) || ''; // Use empty string for empty attributes
+            attributes[attrName] = element.getAttribute(attrName) || '';
         }
     }
 
-    // Add data-* attributes
-     for (let i = 0; i < element.attributes.length; i++) {
-         const attr = element.attributes[i];
-         if (attr.name.startsWith('data-')) {
-             attributes[attr.name] = attr.value || '';
-         }
-     }
+    for (let i = 0; i < element.attributes.length; i++) {
+        const attr = element.attributes[i];
+        if (attr.name.startsWith('data-')) {
+            attributes[attr.name] = attr.value || '';
+        }
+    }
 
 
-    // Get visible text content, excluding text from child scripts/styles
     let text = element.textContent ? element.textContent.trim() : '';
-     // Basic filtering for excessive text or non-visible text
-     if (text.length > 200) { // Limit text length
-         text = text.substring(0, 200) + '...';
-     }
-     // Further refine text extraction if needed to get only user-visible text
+    if (text.length > 200) {
+        text = text.substring(0, 200) + '...';
+    }
 
-    // Check visibility based on computed style
     const computedStyle = window.getComputedStyle(element);
     const isVisible = computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden' && computedStyle.opacity !== '0';
     if (!isVisible) {
-        // return null; // Uncomment this line if you only want visible elements
+      // return null; // 주석 처리 또는 제거
     }
-     // Note: Checking if an element is actually interactive (e.g., disabled)
-     // might require more sophisticated checks. isElementClickable handles some of this.
 
 
     return {
         node_id: nodeId,
         tag: tagName,
-        text: text || null, // Use null if text is empty after trim
+        text: text || null,
         attributes: attributes,
-        bounding_box: boundingBox,
+        bounding_box: boundingBox, // 이제 이 boundingBox는 문서 전체 기준 좌표입니다.
         is_clickable: isClickable,
-        // Add parent info or other structural info if needed
     };
 }
 
@@ -124,43 +98,25 @@ function isElementClickable(element) {
 
     // Standard interactive elements
     if (['a', 'button', 'input', 'select', 'textarea'].includes(tagName)) {
-        // Check for disabled attribute
         if (element.hasAttribute('disabled')) return false;
-        // Check input types that are not typically interactive (hidden, text, etc.)
-        if (tagName === 'input' && ['text', 'email', 'password', 'number', 'tel', 'url', 'search', 'date', 'time', 'datetime-local', 'month', 'week'].includes(element.type)) {
-             // These are typically for input, not clicking, unless they have a specific role or event listener
-             // However, a text input might be clicked to focus. Let's consider them clickable for selection purposes.
+        if (tagName === 'input' && ['checkbox', 'radio', 'submit', 'reset', 'button', 'image', 'file'].includes(element.type)) {
+            return true;
         }
-         if (tagName === 'input' && ['checkbox', 'radio', 'submit', 'reset', 'button', 'image', 'file'].includes(element.type)) {
-             return true; // These input types are clearly interactive
-         }
-         if (tagName === 'a' && !element.hasAttribute('href') && !element.hasAttribute('role')) {
-             // Anchor tags without href might not be links, but could have click handlers
-             // Consider them potentially clickable
-         }
+        if (tagName === 'a' && !element.hasAttribute('href') && !element.hasAttribute('role')) {
+        }
         return true;
     }
 
-    // Elements with click listeners (heuristic - not perfect)
-    // This requires checking for common event listener properties, which is complex.
-    // A simpler heuristic is checking for common attributes or roles indicating interactivity.
     if (element.hasAttribute('onclick') ||
         element.hasAttribute('tabindex') && element.getAttribute('tabindex') !== '-1' ||
         element.hasAttribute('role') && ['button', 'link', 'checkbox', 'radio', 'tab', 'option', 'menuitem'].includes(element.getAttribute('role').toLowerCase())) {
         return true;
     }
 
-    // Elements with specific CSS properties indicating interactivity (heuristic)
     const computedStyle = window.getComputedStyle(element);
     if (computedStyle.cursor === 'pointer') {
         return true;
     }
-
-    // Check if the element contains interactive children (might indicate the parent is also interactive)
-    // This can lead to over-selection, use with caution.
-    // if (element.querySelector('a, button, input, select, textarea')) {
-    //     return true;
-    // }
 
     return false;
 }
@@ -168,24 +124,23 @@ function isElementClickable(element) {
 
 /**
  * Traverses the DOM and extracts information from relevant elements.
- * @returns {Array<object>} - A list of structured element information objects.
+ * @returns {object} - A list of structured element information objects, and document dimensions.
  */
 function getBrowserUseDomInfo() {
     const elementsInfo = [];
     let nodeIdCounter = 0;
 
-    // Use a TreeWalker for efficient traversal
     const walker = document.createTreeWalker(
-        document.body, // Start from the body
-        NodeFilter.SHOW_ELEMENT, // Show only element nodes
-        null, // No custom filter function
-        false // Don't expand entity references
+        document.body,
+        NodeFilter.SHOW_ELEMENT,
+        null,
+        false
     );
 
     let currentNode = walker.currentNode;
     while (currentNode) {
         const element = currentNode;
-        nodeIdCounter++; // Assign a unique ID
+        nodeIdCounter++;
 
         const info = extractElementInfo(element, nodeIdCounter);
         if (info) {
@@ -194,19 +149,13 @@ function getBrowserUseDomInfo() {
 
         currentNode = walker.nextNode();
     }
-
-    // Optionally, add elements from head if needed (e.g., meta tags)
-    // This walker only traverses the body.
-
-    return elementsInfo;
+    // 문서 전체의 스크롤 가능한 너비와 높이를 함께 반환합니다.
+    // 이는 fullPage 스크린샷의 실제 픽셀 크기와 일치합니다.
+    return {
+        elements: elementsInfo,
+        documentWidth: document.documentElement.scrollWidth,
+        documentHeight: document.documentElement.scrollHeight
+    };
 }
 
-// Make the function accessible globally after the script is injected
-// This allows the Python side to call this function via page.evaluate()
 window.getBrowserUseDomInfo = getBrowserUseDomInfo;
-
-// Optional: Immediately execute and store the result if the script is meant
-// to be self-executing and attach the result to the window object.
-// window.browserUseDomData = getBrowserUseDomInfo();
-
-

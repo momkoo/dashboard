@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
-import { WebSourceCard } from "./web-source-card"
-import { EmptyState } from "./empty-state"
+import { WebSourceCard } from "./dashboard/web-source-card"
+import { EmptyState } from "./dashboard/empty-state"
 import { Plus, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
