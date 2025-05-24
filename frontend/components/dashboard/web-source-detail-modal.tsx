@@ -1,6 +1,6 @@
 // Modal to show detailed info for a WebSource, including crawled fields
 // Only new comments are in English as per user rule
-
+// 여기는 메인페이지에서 보이는 웹소스의 상세정보를 보여주는 모달
 import React from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"

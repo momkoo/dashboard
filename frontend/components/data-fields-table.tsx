@@ -1,3 +1,4 @@
+//**data-fields-table**: 어떤 데이터를 어떻게 수집할지 설정 (설정 도구
 "use client"
 
 import { useState } from "react"

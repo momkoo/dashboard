@@ -86,3 +86,101 @@
             type: text
             method: css_selector
             rule: 'div.line-clamp-6.font-sans.text-sm.text-textMain.dark\:text-textMainDark.selection\:bg-super\/50.selection\:text-textMain.dark\:selection\:bg-superDuper\/10.dark\:selection\:text-superDark'
+-
+    name: '웹소스 - news.google.com'
+    url: 'https://news.google.com/home?hl=ko&gl=KR&ceid=KR:ko'
+    data_fields:
+        -
+            id: field_1748060503356
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: 'a.WwrzSb[href]'
+        -
+            id: field_1748060509907
+            name: 필드_2
+            type: text
+            method: css_selector
+            rule: 'a.gPFEn[href]'
+-
+    name: '웹소스 - news.google.com'
+    url: 'https://news.google.com/home?hl=ko&gl=KR&ceid=KR:ko'
+    data_fields:
+        -
+            id: field_1748060930049
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: 'a.JtKRv.vDXQhc[href]'
+-
+    name: '웹소스 - m.blog.naver.com'
+    url: 'https://m.blog.naver.com/PostList.naver?blogId=cocoleenice&tab=1'
+    data_fields:
+        -
+            id: field_1748061311547
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: img.lazyload.reset__YyJ56
+        -
+            id: field_1748061312439
+            name: 필드_2
+            type: text
+            method: css_selector
+            rule: span
+        -
+            id: field_1748061319251
+            name: 필드_3
+            type: text
+            method: css_selector
+            rule: img.lazyload
+-
+    name: '웹소스 - trends.google.co.kr'
+    url: 'https://trends.google.co.kr/trending?geo=KR'
+    data_fields:
+        -
+            id: field_1748069761411
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: td.enOdEe-wZVHld-aOtOmf.jvkLtd
+        -
+            id: field_1748069766868
+            name: 필드_2
+            type: text
+            method: css_selector
+            rule: div.mZ3RIc
+        -
+            id: field_1748069786094
+            name: 필드_3
+            type: text
+            method: css_selector
+            rule: div.vdw3Ld
+-
+    name: '웹소스 - jojoldu.tistory.com'
+    url: 'https://jojoldu.tistory.com/'
+    data_fields:
+        -
+            id: field_1748076988209
+            name: 필드_3
+            type: text
+            method: css_selector
+            rule: 'a[href]'
+        -
+            id: field_1748077004713
+            name: 필드_2
+            type: text
+            method: css_selector
+            rule: span.title
+        -
+            id: field_1748077006601
+            name: 필드_3
+            type: text
+            method: css_selector
+            rule: span.excerpt
+        -
+            id: field_1748077008077
+            name: 필드_4
+            type: text
+            method: css_selector
+            rule: span.meta

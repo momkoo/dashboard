@@ -1,15 +1,14 @@
-// src/dashboard/frontend/app/page.tsx
-// This is the root page component for the application (/)
-
-// Corrected import: Import the default export without curly braces
-import MainDashboard from '@/components/main-dashboard'
-
+// app/page.tsx - 메인 페이지 (MainDataDashboard 사용)
+import { MainDataDashboard } from '../components/main-data-dashboard'
+import { NavigationBar } from '../components/layout/navigation-bar'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Render the WebSourceEditor component */}
-      <MainDashboard />
-    </main>
+    <>
+      <NavigationBar />
+      <div className="container mx-auto py-4">
+        <MainDataDashboard />
+      </div>
+    </>
   )
 }

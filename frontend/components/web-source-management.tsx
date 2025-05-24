@@ -16,13 +16,15 @@ export interface DataField {
   extractionMethod?: string
 }
 
+// WebSource 인터페이스를 WebSourceWithData와 호환되도록 수정
 export interface WebSource {
   id: string
   name: string
   url: string
   status: "active" | "inactive" | "error" | "crawling"
   lastCrawled: string | null
-  dataFields: DataField[]
+  fields: string[]        // dataFields 대신 fields 사용
+  collectedData: any[]    // 수집된 데이터
 }
 
 export function WebSourceManagement() {
@@ -36,18 +38,91 @@ export function WebSourceManagement() {
     const fetchWebSources = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch("/api/web-source/list")
+        const res = await fetch("http://localhost:8082/api/web-source/list")
         if (!res.ok) throw new Error("Failed to fetch web sources")
         const data = await res.json()
-        // Map backend data to WebSource type (including id and dataFields)
-        const sources: WebSource[] = (data || []).map((src: any) => ({
-          id: src.id,
-          name: src.name,
-          url: src.url,
-          status: src.status || "inactive",
-          lastCrawled: src.lastCrawled || null,
-          dataFields: src.dataFields || [],
-        }))
+        // Map backend data to WebSource type with proper field mapping
+        const sources: WebSource[] = (data || []).map((src: any) => {
+          // Debug the structure of data_fields
+          console.log('Raw data_fields type:', typeof src.data_fields)
+          console.log('Raw data_fields:', src.data_fields)
+          
+          let fields: string[] = []
+          
+          try {
+            if (src.data_fields) {
+              // Handle different data_fields formats
+              if (Array.isArray(src.data_fields)) {
+                // It's already an array
+                const dataFields = src.data_fields
+                console.log('Array data_fields:', dataFields)
+                
+                fields = dataFields.map((field: any) => {
+                  if (typeof field === 'string') return field
+                  if (field && typeof field === 'object') {
+                    return field.name || field.field_name || `아이템 ${fields.length + 1}`
+                  }
+                  return `아이템 ${fields.length + 1}`
+                })
+              } else if (typeof src.data_fields === 'string') {
+                // Try to parse it as JSON
+                try {
+                  // Check if it's already a stringified array of objects
+                  const dataFields = JSON.parse(src.data_fields)
+                  console.log('Parsed string data_fields:', dataFields)
+                  
+                  if (Array.isArray(dataFields)) {
+                    fields = dataFields.map((field: any) => {
+                      if (typeof field === 'string') return field
+                      if (field && typeof field === 'object') {
+                        return field.name || field.field_name || `아이템 ${fields.length + 1}`
+                      }
+                      return `아이템 ${fields.length + 1}`
+                    })
+                  }
+                } catch (parseError) {
+                  console.error('Failed to parse data_fields as JSON:', parseError)
+                  // If it's not valid JSON, just use it as a single field
+                  fields = [src.data_fields]
+                }
+              } else if (src.data_fields && typeof src.data_fields === 'object') {
+                // It's an object but not an array
+                console.log('Object data_fields:', src.data_fields)
+                
+                // Convert object to array of field names if possible
+                if (Object.keys(src.data_fields).length > 0) {
+                  fields = Object.keys(src.data_fields).map(key => {
+                    const field = src.data_fields[key]
+                    if (typeof field === 'string') return field
+                    if (field && typeof field === 'object') {
+                      return field.name || field.field_name || key
+                    }
+                    return key
+                  })
+                }
+              }
+              
+              console.log('Final processed fields:', fields)
+            }
+          } catch (e) {
+            console.error('Error processing data_fields:', e)
+            // Fallback to empty fields array
+            fields = []
+          }
+          
+          return {
+            id: src.id,
+            name: src.name || `웹소스 ${src.id.substring(0, 8)}`,
+            url: src.url,
+            // Map crawling_status to our status types
+            status: src.crawling_status === 'crawling' ? 'crawling' : 
+                   src.enabled ? 'active' : 'inactive',
+            lastCrawled: src.last_crawled_at || null,
+            fields: fields,
+            collectedData: src.latest_crawled_data_summary ? 
+              [{id: 'sample', ...JSON.parse(src.latest_crawled_data_summary)}] : [],
+          }
+        })
         setWebSources(sources)
       } catch (error) {
         toast({
@@ -63,7 +138,7 @@ export function WebSourceManagement() {
   }, [toast])
 
   // Save a new web source and add its card immediately
-  const handleSaveWebSource = async (webSourceData: Omit<WebSource, 'id' | 'status' | 'lastCrawled'>) => {
+  const handleSaveWebSource = async (webSourceData: Omit<WebSource, 'id' | 'status' | 'lastCrawled' | 'collectedData'>) => {
     try {
       const res = await fetch('/api/web-source/save', {
         method: 'POST',
@@ -80,7 +155,8 @@ export function WebSourceManagement() {
           url: data.url,
           status: data.status || 'inactive',
           lastCrawled: data.lastCrawled || null,
-          dataFields: data.dataFields || [],
+          fields: data.fields || webSourceData.fields || [],
+          collectedData: [],
         },
         ...prev
       ]);

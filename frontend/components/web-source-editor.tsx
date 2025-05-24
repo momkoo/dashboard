@@ -137,9 +137,13 @@ function DataFieldsTable({
 }
 
 
-function WebSourceEditor() {
+interface WebSourceEditorProps {
+  initialUrl?: string;
+}
+
+function WebSourceEditor({ initialUrl = '' }: WebSourceEditorProps) {
   const { toast } = useToast();
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState(initialUrl);
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [dataFields, setDataFields] = useState<ExtractorField[]>([]);
@@ -162,6 +166,13 @@ function WebSourceEditor() {
   // 백엔드에서 전달받은 뷰포트 너비 (DOM 좌표의 X축 스케일 기준)
   const [originalViewportWidth, setOriginalViewportWidth] = useState(1920); // Playwright 설정 값과 동일
   const [selectedElementId, setSelectedElementId] = useState<number | null>(null);
+  // initialUrl이 있을 때 자동으로 분석 시작
+  useEffect(() => {
+    if (initialUrl && !showPreview) {
+      handleAnalyze();
+    }
+  }, [initialUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // 스크린샷 이미지 로드 시 크기 및 스케일 계산
   useEffect(() => {
     const calculateScales = () => {
@@ -366,7 +377,7 @@ function WebSourceEditor() {
       });
       return;
     }
-
+    
     if (dataFields.length === 0) {
       toast({
         title: "오류", 
@@ -422,6 +433,11 @@ function WebSourceEditor() {
         description: "웹소스가 성공적으로 저장되었습니다.",
       });
 
+      // Navigate to management page instead of clearing form
+      window.location.href = '/management';
+      return;
+      
+      // This code won't run due to the return above
       setUrl('');
       setShowPreview(false);
       setDataFields([]);

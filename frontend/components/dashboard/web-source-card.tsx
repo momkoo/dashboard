@@ -33,7 +33,8 @@ import {
   ExternalLink,
   AlertTriangle,
 } from "lucide-react"
-import type { WebSource } from "../web-source-management.jsx"
+import type { WebSource } from "../web-source-management"
+import { Badge } from "@/components/ui/badge"
 
 interface WebSourceCardProps {
   source: WebSource
@@ -137,7 +138,23 @@ export function WebSourceCard({ source, onEdit, onDelete, onStartCrawl }: WebSou
             <span className="ml-2">{getStatusText()}</span>
           </div>
 
-          <p className="text-xs text-gray-500 mt-2">{getLastCrawledText()}</p>
+          <div className="mt-3">
+            <p className="text-xs text-gray-600 mb-2 font-medium">Collecting Fields:</p>
+            <div className="flex flex-wrap gap-1">
+              {source.fields.slice(0, 3).map((field, index) => (
+                <Badge key={index} variant="secondary" className="text-xs px-2 py-0.5">
+                  {field}
+                </Badge>
+              ))}
+              {source.fields.length > 3 && (
+                <Badge variant="outline" className="text-xs px-2 py-0.5">
+                  +{source.fields.length - 3} more
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-500 mt-3">{getLastCrawledText()}</p>
         </div>
       </CardContent>
 

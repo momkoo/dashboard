@@ -1,5 +1,5 @@
 "use client"
-
+//**data-table**: 이미 수집된 데이터를 보여줌 (결과물)
 import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"

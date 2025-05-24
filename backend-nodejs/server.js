@@ -46,40 +46,48 @@ async function loadBuildDomTreeScript() {
 }
 
 // Utility function to generate CSS selector (similar to Python's dom_processor.py)
+// Improved to create more useful selectors for web scraping
 function generateSelector(elementInfo) {
-    const selectorParts = [];
-
+    console.log('[Backend Node.js] Generating selector for element:', JSON.stringify(elementInfo, null, 2));
+    
+    // If the element has an ID, use it as it's the most specific
     if (elementInfo.attributes.id) {
-        return `#${elementInfo.attributes.id.replace(/[^a-zA-Z0-9_-]/g, '\\$&')}`;
+        return `#${elementInfo.attributes.id.replace(/[^a-zA-Z0-9_-]/g, '\$&')}`;
     }
-
-    selectorParts.push(elementInfo.tag);
-
+    
+    // Process class attributes to find the most useful class for selection
     if (elementInfo.attributes.class) {
         const classes = elementInfo.attributes.class.split(/\s+/).filter(Boolean);
-        const validClasses = classes.filter(c => c.length > 2 || c.includes('-'));
-        if (validClasses.length > 0) {
-            const escapedClasses = validClasses.map(c => c.replace(/[^a-zA-Z0-9_-]/g, '\\$&'));
-            selectorParts.push("." + escapedClasses.join("."));
+        console.log('[Backend Node.js] Element classes:', classes);
+        
+        // Return just the tag and the first class for simplicity and reliability
+        // This is the most general approach that works for most websites
+        if (classes.length > 0) {
+            // Just use the first class - simple but effective for most cases
+            return `${elementInfo.tag}.${classes[0]}`;
         }
     }
-
+    
+    // For inputs, include type and name attributes
     if (elementInfo.tag === 'input') {
+        const parts = [elementInfo.tag];
+        
         if (elementInfo.attributes.type) {
-            selectorParts.push(`[type="${elementInfo.attributes.type}"]`);
+            parts.push(`[type="${elementInfo.attributes.type}"]`);
         }
         if (elementInfo.attributes.name) {
-            selectorParts.push(`[name="${elementInfo.attributes.name}"]`);
+            parts.push(`[name="${elementInfo.attributes.name}"]`);
         }
-    } else if (elementInfo.tag === 'a' && elementInfo.attributes.href) {
-        selectorParts.push('[href]');
+        return parts.join('');
+    } 
+    // For links, include href if present
+    else if (elementInfo.tag === 'a' && elementInfo.attributes.href) {
+        return `${elementInfo.tag}[href]`;
     }
-
-    let selector = selectorParts.join("");
-    if (!selector) {
-        return elementInfo.tag;
-    }
-    return selector;
+    
+    // Fallback to tag name if no better selector could be created
+    console.log('[Backend Node.js] Falling back to tag name:', elementInfo.tag);
+    return elementInfo.tag;
 }
 
 
@@ -163,6 +171,28 @@ app.post('/sources/generate_selector', (req, res) => {
     } catch (error) {
         console.error(`[Backend Node.js] Error generating selector: ${error.message}`);
         res.status(500).json({ error: `Failed to generate selector: ${error.message}` });
+    }
+});
+
+// GET /api/web-source/list - 모든 웹소스 목록 가져오기
+app.get('/api/web-source/list', async (req, res) => {
+    try {
+        console.log('[Backend Node.js] Fetching web sources list');
+        const { data, error } = await supabase
+            .from('web_sources')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+        if (error) {
+            console.error('[Supabase] Error fetching web sources:', error.message);
+            return res.status(500).json({ error: `Failed to fetch web sources: ${error.message}` });
+        }
+        
+        console.log(`[Backend Node.js] Fetched ${data.length} web sources`);
+        res.json(data);
+    } catch (error) {
+        console.error(`[Backend Node.js] Error fetching web sources: ${error.message}`);
+        res.status(500).json({ error: `Failed to fetch web sources: ${error.message}` });
     }
 });
 
