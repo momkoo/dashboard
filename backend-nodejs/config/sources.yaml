@@ -184,3 +184,91 @@
             type: text
             method: css_selector
             rule: span.meta
+-
+    name: '웹소스 - trends.google.co.kr'
+    url: 'https://trends.google.co.kr/trending?geo=KR'
+    data_fields:
+        -
+            id: field_1748245336555
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: div.mZ3RIc
+        -
+            id: field_1748245338731
+            name: 필드_2
+            type: text
+            method: css_selector
+            rule: div.lqv0Cb
+        -
+            id: field_1748245340646
+            name: 필드_3
+            type: text
+            method: css_selector
+            rule: span.mUIrbf-vQzf8d
+-
+    name: '웹소스 - trends.google.co.kr'
+    url: 'https://trends.google.co.kr/trending?geo=KR'
+    data_fields:
+        -
+            id: field_1748253353149
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: td.enOdEe-wZVHld-aOtOmf.jvkLtd
+        -
+            id: field_1748253358037
+            name: 필드_2
+            type: text
+            method: css_selector
+            rule: div.lqv0Cb
+        -
+            id: field_1748253361025
+            name: 필드_3
+            type: text
+            method: css_selector
+            rule: 'div.vdw3Ld[role="button"]'
+-
+    name: '웹소스 - trends.google.co.kr'
+    url: 'https://trends.google.co.kr/trending?geo=KR'
+    data_fields:
+        -
+            id: field_1748253909837
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: div.mZ3RIc
+        -
+            id: field_1748253912005
+            name: 필드_2
+            type: text
+            method: css_selector
+            rule: div.lqv0Cb
+        -
+            id: field_1748253913518
+            name: 필드_3
+            type: text
+            method: css_selector
+            rule: 'div.vdw3Ld[role="button"]'
+-
+    name: '웹소스 - trends.google.co.kr'
+    url: 'https://trends.google.co.kr/trending?geo=KR'
+    data_fields:
+        -
+            id: field_1748254042335
+            name: 필드_1
+            type: text
+            method: css_selector
+            rule: div.mZ3RIc
+        -
+            id: field_1748254044241
+            name: 필드_2
+            type: text
+            method: css_selector
+            rule: div.lqv0Cb
+        -
+            id: field_1748254045875
+            name: 필드_3
+            type: text
+            method: css_selector
+            rule: 'div.vdw3Ld[role="button"]'

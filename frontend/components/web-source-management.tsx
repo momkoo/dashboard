@@ -1,5 +1,5 @@
 "use client"
-
+//웹소스매니지먼트 페이지 웹소스카드보이는
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -248,7 +248,7 @@ export function WebSourceManagement() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {webSources.map((source) => (
             <WebSourceCard
-              key={source.name}
+              key={source.id} /* Use unique ID instead of name to avoid duplicate key errors */
               source={source}
               onEdit={() => handleEditWebSource(source.name)}
               onDelete={() => handleDeleteWebSource(source.name)}
